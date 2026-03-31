@@ -1,6 +1,11 @@
 substitutions:
   vornado_ir_pin: GPIO4
-  vornado_components_path: ".."
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [ vornado_controller, vornado_stateful_controller ]
 
 packages:
   vornado_fan: !include ../vornado-fan.yaml

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(esphome compile:*)",
+      "Bash(tests/compile_all.sh)",
+      "WebFetch(domain:esphome.io)",
+      "Bash(gh api:*)",
+      "Bash(gh search:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}
