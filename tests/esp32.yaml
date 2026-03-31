@@ -1,0 +1,40 @@
+external_components:
+  - source:
+      type: local
+      path: ..
+    components: [ vornado_controller, vornado_stateful_controller ]
+
+esphome:
+  name: vornado-test-esp32
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+wifi:
+  ssid: "test"
+  password: "test1234"
+  min_auth_mode: WPA2
+
+api:
+  encryption:
+    key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+
+ota:
+  - platform: esphome
+    password: "test1234"
+
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO4
+  carrier_duty_percent: 50%
+
+vornado_controller:
+  id: vornado_ctrl
+  transmitter_id: ir_tx
+
+vornado_stateful_controller:
+  id: vornado_stateful
+  name: "Vornado Fan"
+  controller: vornado_ctrl
