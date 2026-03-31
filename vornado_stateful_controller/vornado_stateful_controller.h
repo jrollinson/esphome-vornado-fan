@@ -2,6 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/core/automation.h"
+#include "esphome/components/button/button.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "../vornado_controller/vornado_controller.h"
@@ -310,6 +311,43 @@ template<typename... Ts> class ToggleDirectionAction : public Action<Ts...>, pub
 template<typename... Ts> class ResetStateAction : public Action<Ts...>, public Parented<VornadoStatefulController> {
  public:
   void play(Ts... x) override { this->parent_->reset_to_known_state(); }
+};
+
+// ============================================================================
+// Auto-generated Button Support
+// ============================================================================
+
+enum VornadoButtonAction : uint8_t {
+  BTN_TURN_ON   = 0,
+  BTN_TURN_OFF  = 1,
+  BTN_SPEED_1   = 2,
+  BTN_SPEED_2   = 3,
+  BTN_SPEED_3   = 4,
+  BTN_SPEED_4   = 5,
+  BTN_DIRECTION = 6,
+  BTN_RESET     = 7,
+};
+
+class VornadoActionButton : public button::Button, public Parented<VornadoStatefulController> {
+ public:
+  void set_action(int action) { action_ = static_cast<VornadoButtonAction>(action); }
+
+ protected:
+  void press_action() override {
+    switch (action_) {
+      case BTN_TURN_ON:   this->parent_->turn_on();        break;
+      case BTN_TURN_OFF:  this->parent_->turn_off();       break;
+      case BTN_SPEED_1:   this->parent_->set_speed(1);     break;
+      case BTN_SPEED_2:   this->parent_->set_speed(2);     break;
+      case BTN_SPEED_3:   this->parent_->set_speed(3);     break;
+      case BTN_SPEED_4:   this->parent_->set_speed(4);     break;
+      case BTN_DIRECTION: this->parent_->toggle_direction(); break;
+      case BTN_RESET:     this->parent_->reset_to_known_state(); break;
+    }
+  }
+
+ private:
+  VornadoButtonAction action_{BTN_TURN_ON};
 };
 
 }  // namespace vornado_controller
