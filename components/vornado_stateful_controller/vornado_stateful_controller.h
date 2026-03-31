@@ -5,7 +5,7 @@
 #include "esphome/components/button/button.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
-#include "vornado_controller/vornado_controller.h"
+#include "../vornado_controller/vornado_controller.h"
 #include <string>
 
 namespace esphome {

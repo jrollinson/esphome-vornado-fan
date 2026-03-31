@@ -7,9 +7,6 @@ external_components:
       path: ../components
     components: [ vornado_controller, vornado_stateful_controller ]
 
-packages:
-  vornado_fan: !include ../vornado-fan.yaml
-
 esphome:
   name: vornado-test-esp32
 
@@ -17,6 +14,20 @@ esp32:
   board: esp32dev
   framework:
     type: arduino
+
+remote_transmitter:
+  id: ir_tx
+  pin: ${vornado_ir_pin}
+  carrier_duty_percent: 50%
+
+vornado_controller:
+  id: vornado_ctrl
+  transmitter_id: ir_tx
+
+vornado_stateful_controller:
+  id: vornado_stateful
+  name: "Vornado Fan"
+  controller: vornado_ctrl
 
 wifi:
   ssid: "test"
