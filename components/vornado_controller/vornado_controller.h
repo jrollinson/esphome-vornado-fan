@@ -179,8 +179,8 @@ class VornadoController : public Component {
     call.perform();
   }
 
-  // Transmit the IR code for a given button ID
-  void transmit_for_button(int button_id) {
+  // Transmit the IR code for a given button ID (virtual for testing)
+  virtual void transmit_for_button(int button_id) {
     switch (button_id) {
       case VornadoButton::POWER_ON:
       case VornadoButton::POWER_OFF:
@@ -201,10 +201,14 @@ class VornadoController : public Component {
     }
   }
 
-  // Transmit and update last command time
+  // Transmit and update last command time.
+  // last_command_time_ is set BEFORE transmission so inter-command spacing is
+  // measured from the start of transmission, not the end. This matches the
+  // timing of the button-based approach where last_command_time_ is set before
+  // the async IR automation fires.
   void press_and_track(int button_id) {
-    transmit_for_button(button_id);
     last_command_time_ = millis();
+    transmit_for_button(button_id);
   }
 
   // Release lock after spacing delay with optional message
