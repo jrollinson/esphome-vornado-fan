@@ -5,10 +5,13 @@
 #   vornado_ir_pin  — GPIO pin connected to the IR LED (e.g. GPIO4)
 # ============================================================================
 
+substitutions:
+  vornado_components_path: "."
+
 external_components:
   - source:
       type: local
-      path: .
+      path: ${vornado_components_path}
     components: [ vornado_controller, vornado_stateful_controller ]
 
 logger:

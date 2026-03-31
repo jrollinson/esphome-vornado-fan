@@ -1,8 +1,9 @@
-external_components:
-  - source:
-      type: local
-      path: ..
-    components: [ vornado_controller, vornado_stateful_controller ]
+substitutions:
+  vornado_ir_pin: GPIO4
+  vornado_components_path: ".."
+
+packages:
+  vornado_fan: !include ../vornado-fan.yaml
 
 esphome:
   name: vornado-test-d1
@@ -22,17 +23,3 @@ api:
 ota:
   - platform: esphome
     password: "test1234"
-
-remote_transmitter:
-  id: ir_tx
-  pin: GPIO4
-  carrier_duty_percent: 50%
-
-vornado_controller:
-  id: vornado_ctrl
-  transmitter_id: ir_tx
-
-vornado_stateful_controller:
-  id: vornado_stateful
-  name: "Vornado Fan"
-  controller: vornado_ctrl
