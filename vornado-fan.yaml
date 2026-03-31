@@ -1,88 +1,27 @@
 # ============================================================================
-# Kitchen Fan Controller Configuration (Vornado Fan via IR)
+# Vornado Transom Fan IR Controller — Reusable Package
 # ============================================================================
-# Purpose: Controls a Vornado fan via infrared commands using an ESP8266
-#          with state tracking, automatic screen wake detection, and button control.
-#
-# Hardware Requirements:
-#   - ESP8266 D1 Mini board
-#   - IR LED transmitter connected to GPIO4
-#
-# Features:
-#   - State Tracking: Maintains power (Unknown/Off/On) and speed (Unknown/1-4) state
-#   - Button Control: Discrete buttons for power and speed (1-4) selection
-#   - Smart Commands: Optimal IR sequences, boundary checking
-#   - Auto Reset: First command resets to known state if needed
-#   - State Sensors: Power state (text) and speed (numeric) exposed to HA
-#
-# Architecture:
-#   Buttons → VornadoStatefulController → VornadoController → IR Transmitter
-#   (UI)      (state tracking + logic)     (timing/wake)      (IR commands)
-#
-# Screen Behavior:
-#   - The Vornado screen sleeps after 10 seconds of inactivity
-#   - When asleep, the first button press wakes the screen but doesn't execute
-#   - This config automatically sends a wake command when needed
+# Use as a package from your device config. Required substitutions:
+#   vornado_ir_pin  — GPIO pin connected to the IR LED (e.g. GPIO4)
 # ============================================================================
 
-esphome:
-  name: kitchen-fan-controller
-  friendly_name: "Kitchen Fan"
-
-esp8266:
-  board: d1_mini
-
-# External components (included alongside this config file)
 external_components:
-  - source:
-      type: local
-      path: .
+  - source: github://jrollinson/esphome-vornado-fan@button-based
     components: [ vornado_controller, vornado_stateful_controller ]
 
-wifi:
-  ssid: "YOUR_WIFI_SSID"
-  password: "YOUR_WIFI_PASSWORD"
-  # Uncomment and set your domain if using local DNS:
-  # domain: ".your.domain"
-  min_auth_mode: WPA2
-  fast_connect: true
-  power_save_mode: none
-
-  # Fallback hotspot if WiFi connection fails
-  ap:
-    ssid: "Vornado-Fan-Fallback"
-    password: "YOUR_FALLBACK_PASSWORD"
-
-captive_portal:
-
 logger:
-  level: INFO
   logs:
     vornado_controller: INFO
     vornado_stateful: INFO
 
-api:
-  encryption:
-    # Generate a key with: python3 -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())"
-    key: "YOUR_API_ENCRYPTION_KEY_BASE64"
-  reboot_timeout: 15min
-
-ota:
-  - platform: esphome
-    # Generate a password and store it somewhere safe
-    password: "YOUR_OTA_PASSWORD"
-
 # IR Transmitter
 remote_transmitter:
   id: ir_tx
-  pin: GPIO4
+  pin: ${vornado_ir_pin}
   carrier_duty_percent: 50%
-
 
 # ============================================================================
 # Vornado Controller Component (Base Layer)
-# ============================================================================
-# Handles intelligent command timing, screen wake detection, and sequences
 # ============================================================================
 vornado_controller:
   id: vornado_ctrl
@@ -90,31 +29,24 @@ vornado_controller:
   direction_button: vornado_direction_internal
   increase_button: vornado_increase_internal
   decrease_button: vornado_decrease_internal
-  min_spacing_ms: 400          # Minimum delay between IR commands
-  screen_timeout_ms: 10000     # Time after which screen is considered asleep (10 sec)
-  ensure_delay_ms: 15000       # Delay for "Ensure On" to guarantee screen sleep (15 sec)
+  min_spacing_ms: 400
+  screen_timeout_ms: 10000
+  ensure_delay_ms: 15000
 
 # ============================================================================
-# Vornado Stateful Controller (Button-Based Control)
+# Vornado Stateful Controller
 # ============================================================================
-# Stateful controller with button-based interface
-# Automatically creates state sensors:
-#   - Text sensor: vornado_stateful_power_state (Power: Unknown/Off/On)
-#   - Numeric sensor: vornado_stateful_speed_state (Speed: NaN or 1-4)
+# Automatically creates:
+#   - Text sensor:    <name> Power State (Unknown/Off/On)
+#   - Numeric sensor: <name> Speed (NaN or 1-4)
 # ============================================================================
 vornado_stateful_controller:
   id: vornado_stateful
   name: "Vornado Fan"
   controller: vornado_ctrl
 
-# ============================================================================
-# Button Definitions
-# ============================================================================
-# Internal buttons map directly to IR commands (not exposed to Home Assistant)
-# Template buttons provide user-facing controls with intelligent timing/wake logic
-# ============================================================================
 button:
-  # Internal buttons - Direct IR command mappings (not exposed to Home Assistant)
+  # Internal buttons — direct IR command mappings, not exposed to Home Assistant
   - platform: template
     name: "Vornado Power Toggle"
     id: vornado_power_internal
@@ -155,10 +87,7 @@ button:
           data: 0xD82
           nbits: 12
 
-  # ========================================
-  # User-Facing Controls - Power
-  # ========================================
-
+  # User-facing controls
   - platform: template
     name: "Vornado Turn On"
     icon: mdi:power
@@ -172,10 +101,6 @@ button:
     on_press:
       - vornado_stateful.turn_off:
           id: vornado_stateful
-
-  # ========================================
-  # User-Facing Controls - Speed Selection
-  # ========================================
 
   - platform: template
     name: "Vornado Speed 1"
@@ -209,20 +134,12 @@ button:
           id: vornado_stateful
           speed: 4
 
-  # ========================================
-  # User-Facing Controls - Direction
-  # ========================================
-
   - platform: template
     name: "Vornado Direction"
     icon: mdi:arrow-left-right
     on_press:
       - vornado_stateful.toggle_direction:
           id: vornado_stateful
-
-  # ========================================
-  # State Management (Diagnostic)
-  # ========================================
 
   - platform: template
     name: "Vornado Reset State"
@@ -231,36 +148,3 @@ button:
     on_press:
       - vornado_stateful.reset_state:
           id: vornado_stateful
-
-sensor:
-  - platform: uptime
-    name: "Uptime"
-    entity_category: diagnostic
-    update_interval: 60s
-
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    entity_category: diagnostic
-    update_interval: 60s
-
-  - platform: template
-    name: "Free Heap"
-    entity_category: diagnostic
-    unit_of_measurement: "bytes"
-    accuracy_decimals: 0
-    update_interval: 60s
-    lambda: |-
-      return ESP.getFreeHeap();
-
-text_sensor:
-  - platform: version
-    name: "ESPHome Version"
-    entity_category: diagnostic
-
-  - platform: wifi_info
-    ip_address:
-      name: "IP Address"
-      entity_category: diagnostic
-    ssid:
-      name: "SSID"
-      entity_category: diagnostic
