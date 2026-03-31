@@ -175,6 +175,7 @@ class VornadoController : public Component {
     remote_base::SymphonyData symphony{};
     symphony.data = data;
     symphony.nbits = nbits;
+    symphony.repeats = 2;  // ESPHome's remote_transmitter.transmit_symphony defaults to 2 repeats
     remote_base::SymphonyProtocol().encode(call.get_data(), symphony);
     call.perform();
   }

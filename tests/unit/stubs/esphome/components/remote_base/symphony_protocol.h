@@ -8,6 +8,7 @@ namespace remote_base {
 struct SymphonyData {
   uint32_t data{0};
   uint8_t nbits{12};
+  uint8_t repeats{1};
 };
 
 class SymphonyProtocol {
