@@ -16,11 +16,11 @@ Required substitution: `vornado_ir_pin` — the GPIO pin connected to the IR LED
 
 ## Features
 
-- **State tracking** — maintains power and speed state in software since the fan has no feedback
-- **Screen wake handling** — the display sleeps after ~10s; the first IR command only wakes it. Handled automatically.
-- **Ensure On** — waits for the screen to sleep, then powers on, guaranteeing the fan ends up on
-- **Command queueing** — IR commands are queued and spaced to avoid collisions
-- **Smart speed changes** — sends the minimum number of presses to reach the target speed
+- **Turn on/off and set speed 1–4** directly from Home Assistant — no need to step through speeds manually
+- **Speed and power state** are tracked and exposed as sensors, so automations can read the current fan state
+- **Commands always work**, even if the fan's display has gone to sleep — the wake-up is handled transparently
+- **"Ensure On"** resets to a known state and guarantees the fan is on, useful in automations where you can't be sure of the starting state
+- **Rapid commands are safe** — pressing buttons quickly won't confuse the fan; commands are queued and delivered in order
 
 ## Architecture
 
