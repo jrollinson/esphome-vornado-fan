@@ -46,36 +46,3 @@ vornado_stateful_controller:
   name: "Vornado Fan"
   controller: vornado_ctrl
 
-
-sensor:
-  - platform: uptime
-    name: "Uptime"
-    entity_category: diagnostic
-    update_interval: 60s
-
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    entity_category: diagnostic
-    update_interval: 60s
-
-  - platform: template
-    name: "Free Heap"
-    entity_category: diagnostic
-    unit_of_measurement: "bytes"
-    accuracy_decimals: 0
-    update_interval: 60s
-    lambda: |-
-      return ESP.getFreeHeap();
-
-text_sensor:
-  - platform: version
-    name: "ESPHome Version"
-    entity_category: diagnostic
-
-  - platform: wifi_info
-    ip_address:
-      name: "IP Address"
-      entity_category: diagnostic
-    ssid:
-      name: "SSID"
-      entity_category: diagnostic
