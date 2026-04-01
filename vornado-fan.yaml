@@ -6,6 +6,12 @@
 # ============================================================================
 
 external_components:
+  - source:
+      type: git
+      url: https://github.com/jrollinson/esphome
+      ref: vornado-ir-symphony-codes
+    refresh: always
+    components: [ vornado_ir ]
   - source: github://jrollinson/esphome-vornado-fan@main
     refresh: always
     components: [ vornado_controller, vornado_stateful_controller ]
@@ -14,6 +20,7 @@ logger:
   logs:
     vornado_controller: INFO
     vornado_stateful: INFO
+    vornado_ir: INFO
 
 # IR Transmitter
 remote_transmitter:
@@ -21,6 +28,12 @@ remote_transmitter:
   pin: ${vornado_ir_pin}
   carrier_duty_percent: 50%
 
+# ============================================================================
+# Vornado IR Component (Raw IR Layer)
+# ============================================================================
+vornado_ir:
+  id: vornado_ir_component
+  transmitter_id: ir_tx
 
 # ============================================================================
 # Vornado Controller Component (Base Layer)
@@ -29,7 +42,7 @@ remote_transmitter:
 # ============================================================================
 vornado_controller:
   id: vornado_ctrl
-  transmitter_id: ir_tx
+  vornado_ir_id: vornado_ir_component
   min_spacing_ms: 400          # Minimum delay between IR commands
   screen_timeout_ms: 10000     # Time after which screen is considered asleep (10 sec)
   ensure_delay_ms: 15000       # Delay for "Ensure On" to guarantee screen sleep (15 sec)
@@ -46,4 +59,3 @@ vornado_stateful_controller:
   id: vornado_stateful
   name: "Vornado Fan"
   controller: vornado_ctrl
-

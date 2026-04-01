@@ -2,14 +2,16 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import remote_transmitter
 from esphome.const import CONF_ID
 
-DEPENDENCIES = ["remote_transmitter"]
+DEPENDENCIES = ["vornado_ir"]
 AUTO_LOAD = []
 
 vornado_controller_ns = cg.esphome_ns.namespace("vornado_controller")
 VornadoController = vornado_controller_ns.class_("VornadoController", cg.Component)
+
+vornado_ir_ns = cg.esphome_ns.namespace("vornado_ir")
+VornadoIR = vornado_ir_ns.class_("VornadoIR")
 
 # Actions
 SendCommandAction = vornado_controller_ns.class_("SendCommandAction", automation.Action)
@@ -24,7 +26,7 @@ BUTTON_SPEED_DECREASE = 4
 BUTTON_ENSURE_ON = 5
 
 # Configuration keys
-CONF_TRANSMITTER_ID = "transmitter_id"
+CONF_VORNADO_IR_ID = "vornado_ir_id"
 CONF_MIN_SPACING_MS = "min_spacing_ms"
 CONF_SCREEN_TIMEOUT_MS = "screen_timeout_ms"
 CONF_ENSURE_DELAY_MS = "ensure_delay_ms"
@@ -47,9 +49,7 @@ BUTTON_ID_SCHEMA = cv.Any(
 # Component configuration schema
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(VornadoController),
-    cv.Required(CONF_TRANSMITTER_ID): cv.use_id(
-        remote_transmitter.RemoteTransmitterComponent
-    ),
+    cv.Required(CONF_VORNADO_IR_ID): cv.use_id(VornadoIR),
     cv.Optional(CONF_MIN_SPACING_MS, default=400): cv.positive_int,
     cv.Optional(CONF_SCREEN_TIMEOUT_MS, default=10000): cv.positive_int,
     cv.Optional(CONF_ENSURE_DELAY_MS, default=15000): cv.positive_int,
@@ -61,9 +61,8 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    # Set transmitter reference
-    transmitter = await cg.get_variable(config[CONF_TRANSMITTER_ID])
-    cg.add(var.set_transmitter(transmitter))
+    vornado_ir = await cg.get_variable(config[CONF_VORNADO_IR_ID])
+    cg.add(var.set_vornado_ir(vornado_ir))
 
     # Set timing parameters
     cg.add(var.set_min_spacing_ms(config[CONF_MIN_SPACING_MS]))

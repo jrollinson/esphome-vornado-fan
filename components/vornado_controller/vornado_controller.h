@@ -2,8 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/core/automation.h"
-#include "esphome/components/remote_transmitter/remote_transmitter.h"
-#include "esphome/components/remote_base/symphony_protocol.h"
+#include "esphome/components/vornado_ir/vornado_ir.h"
 #include <vector>
 #include <queue>
 #include <string>
@@ -13,13 +12,6 @@ namespace vornado_controller {
 
 static const char *const TAG = "vornado_controller";
 static const size_t MAX_QUEUE_SIZE = 50;
-
-// IR codes for Vornado fan (Symphony protocol, 12 bits)
-static const uint32_t IR_CODE_POWER     = 0xD84;
-static const uint32_t IR_CODE_DIRECTION = 0xD81;
-static const uint32_t IR_CODE_INCREASE  = 0xDC6;
-static const uint32_t IR_CODE_DECREASE  = 0xD82;
-static const uint8_t  IR_NBITS          = 12;
 
 // Button command enumeration
 enum VornadoButton : int {
@@ -42,7 +34,7 @@ class VornadoController : public Component {
  public:
   void setup() override {
     ESP_LOGI(TAG, "Vornado Controller initialized");
-    if (!transmitter_) ESP_LOGW(TAG, "Transmitter not configured!");
+    if (!vornado_ir_) ESP_LOGW(TAG, "VornadoIR not configured!");
   }
 
   float get_setup_priority() const override { return setup_priority::DATA; }
@@ -72,8 +64,8 @@ class VornadoController : public Component {
   }
 
   // Configuration setter
-  void set_transmitter(remote_transmitter::RemoteTransmitterComponent *transmitter) {
-    this->transmitter_ = transmitter;
+  void set_vornado_ir(vornado_ir::VornadoIR *vornado_ir) {
+    this->vornado_ir_ = vornado_ir;
   }
 
   void set_min_spacing_ms(uint32_t ms) { this->min_spacing_ms_ = ms; }
@@ -132,8 +124,8 @@ class VornadoController : public Component {
   }
 
  protected:
-  // Transmitter reference
-  remote_transmitter::RemoteTransmitterComponent *transmitter_{nullptr};
+  // VornadoIR reference
+  vornado_ir::VornadoIR *vornado_ir_{nullptr};
 
   // Timing configuration
   uint32_t min_spacing_ms_{400};
@@ -165,36 +157,25 @@ class VornadoController : public Component {
     }
   }
 
-  // Transmit an IR code via Symphony protocol
-  void transmit_ir(uint32_t data, uint8_t nbits) {
-    if (this->transmitter_ == nullptr) {
-      ESP_LOGW(TAG, "Cannot transmit: transmitter not configured");
-      return;
-    }
-    auto call = this->transmitter_->transmit();
-    remote_base::SymphonyData symphony{};
-    symphony.data = data;
-    symphony.nbits = nbits;
-    symphony.repeats = 2;  // ESPHome's remote_transmitter.transmit_symphony defaults to 2 repeats
-    remote_base::SymphonyProtocol().encode(call.get_data(), symphony);
-    call.perform();
-  }
-
   // Transmit the IR code for a given button ID (virtual for testing)
   virtual void transmit_for_button(int button_id) {
+    if (this->vornado_ir_ == nullptr) {
+      ESP_LOGW(TAG, "Cannot transmit: VornadoIR not configured");
+      return;
+    }
     switch (button_id) {
       case VornadoButton::POWER_ON:
       case VornadoButton::POWER_OFF:
-        transmit_ir(IR_CODE_POWER, IR_NBITS);
+        this->vornado_ir_->send_power_toggle();
         break;
       case VornadoButton::DIRECTION:
-        transmit_ir(IR_CODE_DIRECTION, IR_NBITS);
+        this->vornado_ir_->send_change_direction();
         break;
       case VornadoButton::SPEED_INCREASE:
-        transmit_ir(IR_CODE_INCREASE, IR_NBITS);
+        this->vornado_ir_->send_increase();
         break;
       case VornadoButton::SPEED_DECREASE:
-        transmit_ir(IR_CODE_DECREASE, IR_NBITS);
+        this->vornado_ir_->send_decrease();
         break;
       default:
         ESP_LOGW(TAG, "No IR code for button_id: %d", button_id);
