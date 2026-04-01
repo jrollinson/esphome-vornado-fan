@@ -6,11 +6,11 @@
 Home Assistant
      │  (button press)
      ▼
-Template Buttons              vornado-fan.yaml
-(turn_on, turn_off,           User-facing HA entities. Each button press
- speed 1-4, direction,        invokes a vornado_stateful.* action.
- reset_state)
-     │
+Template Buttons              user's YAML config
+(turn_on, turn_off,           Define whichever buttons you need.
+ speed 1–4, direction,        Each calls a vornado_stateful.* action.
+ reset_state, etc.)
+     │  (vornado_stateful.* action)
      ▼
 VornadoStatefulController     vornado_stateful_controller/vornado_stateful_controller.h
                               Tracks logical state (power, speed).
@@ -27,12 +27,7 @@ VornadoController             vornado_controller/vornado_controller.h
                               Detects screen sleep and auto-inserts a
                               wake pulse when needed.
                               Handles ENSURE_ON (wait-for-sleep then on).
-     │  (button.press())
-     ▼
-Internal Template Buttons     vornado-fan.yaml
-(power, direction,            Each maps to one raw IR code.
- increase, decrease)          Not exposed to Home Assistant.
-     │  (remote_transmitter.transmit_symphony)
+     │  (transmit_symphony)
      ▼
 IR Transmitter (GPIO)
 
@@ -45,7 +40,7 @@ Vornado Transom Fan
 
 Defined in `vornado_controller/vornado_controller.h`.
 
-This layer's only job is to **reliably deliver IR commands to the physical fan**. It knows nothing about logical state (power/speed); it just presses buttons.
+This layer's only job is to **reliably deliver IR commands to the physical fan**. It knows nothing about logical state (power/speed); it just sends IR codes.
 
 **Command queue** — all commands go into a `std::queue<Command>` (max 50). The `loop()` callback processes one command at a time using a processing lock (`is_locked_`). This ensures commands are never sent simultaneously and are always spaced by at least `min_spacing_ms` (default 400ms). A 30-second lock timeout protects against bugs that would stall the queue forever.
 
@@ -79,7 +74,7 @@ State starts as `Unknown` at boot and is updated immediately each time a command
 
 **`turn_off()`** — Only sends `POWER_OFF` if not already off.
 
-**State sensors** — Auto-created at build time (in `vornado_stateful_controller/__init__.py`):
+**Sensors** — Auto-created at build time (in `vornado_stateful_controller/__init__.py`):
 - A `TextSensor` for power state, published as `"Unknown"`, `"Off"`, or `"On"`
 - A `Sensor` for speed, published as `NaN` (unknown) or `1.0`–`4.0`
 
@@ -89,6 +84,8 @@ State starts as `Unknown` at boot and is updated immediately each time a command
 - `vornado_stateful.set_speed` (1–4)
 - `vornado_stateful.toggle_direction`
 - `vornado_stateful.reset_state`
+
+Buttons are not auto-created — define whichever ones you need in your YAML config using these actions. See [`examples/d1_mini_vornado_fan.yaml`](examples/d1_mini_vornado_fan.yaml) for a complete example.
 
 ## IR Codes
 
@@ -101,4 +98,4 @@ These are raw Symphony protocol IR codes captured from the original Vornado Tran
 | Speed decrease | `0xD82` | 12 |
 | Direction toggle | `0xD81` | 12 |
 
-The `remote_transmitter` component uses the `transmit_symphony` action to send these. The IR LED should be connected to the GPIO pin specified by `vornado_ir_pin`, with carrier duty cycle set to 50%.
+The `remote_transmitter` component uses the Symphony protocol to send these at 38 kHz with 50% carrier duty cycle. Note that power on and power off share the same IR code (`0xD84`) — the fan toggles between states based on current display status.

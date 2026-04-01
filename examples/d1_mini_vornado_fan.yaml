@@ -1,8 +1,10 @@
-substitutions:
-  vornado_ir_pin: GPIO4
+external_components:
+  - source: github://jrollinson/esphome-vornado-fan@main
+    # refresh: always  # Uncomment during development
+    components: [ vornado_controller, vornado_stateful_controller ]
 
 packages:
-  vornado_fan: github://jrollinson/esphome-vornado-fan/vornado-fan.yaml@main
+  vornado_buttons: github://jrollinson/esphome-vornado-fan/buttons.yaml@main
 
 esphome:
   name: kitchen-fan-controller
@@ -27,6 +29,9 @@ captive_portal:
 
 logger:
   level: INFO
+  logs:
+    vornado_controller: INFO
+    vornado_stateful: INFO
 
 api:
   encryption:
@@ -36,3 +41,17 @@ api:
 ota:
   - platform: esphome
     password: !secret ota_password
+
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO4
+  carrier_duty_percent: 50%
+
+vornado_controller:
+  id: vornado_ctrl
+  transmitter_id: ir_tx
+
+vornado_stateful_controller:
+  id: vornado_stateful
+  name: "Vornado Fan"
+  controller: vornado_ctrl

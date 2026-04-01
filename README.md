@@ -1,27 +1,83 @@
 # ESPHome Vornado Transom Fan Controller
 
-ESPHome package for controlling a Vornado Transom fan via IR, with state tracking and Home Assistant integration.
+ESPHome component for controlling a Vornado Transom fan via IR, with state tracking and Home Assistant integration.
 
 ## Usage
 
-Use this as a package from your own device config. See [`examples/d1_mini_vornado_fan.yaml`](examples/d1_mini_vornado_fan.yaml) for a complete example.
+Copy [`examples/d1_mini_vornado_fan.yaml`](examples/d1_mini_vornado_fan.yaml) and adapt it for your device. The core config looks like this:
 
-Required substitution: `vornado_ir_pin` — the GPIO pin connected to the IR LED.
+```yaml
+external_components:
+  - source: github://jrollinson/esphome-vornado-fan@main
+    components: [ vornado_controller, vornado_stateful_controller ]
 
-## Home Assistant Entities
+packages:
+  vornado_buttons: github://jrollinson/esphome-vornado-fan/buttons.yaml@main
 
-**Buttons:** Turn On, Turn Off, Speed 1–4, Direction, Reset State *(diagnostic)*
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO4  # GPIO pin connected to your IR LED
+  carrier_duty_percent: 50%
 
-**Sensors:** Power State *(Unknown / Off / On)*, Speed *(NaN or 1–4)*, plus standard diagnostic sensors
+vornado_controller:
+  id: vornado_ctrl
+  transmitter_id: ir_tx
 
-## Features
+vornado_stateful_controller:
+  id: vornado_stateful
+  name: "Vornado Fan"
+  controller: vornado_ctrl
+```
 
-- **Turn on/off and set speed 1–4** directly from Home Assistant — no need to step through speeds manually
-- **Speed and power state** are tracked and exposed as sensors, so automations can read the current fan state
-- **Commands always work**, even if the fan's display has gone to sleep — the wake-up is handled transparently
-- **"Ensure On"** resets to a known state and guarantees the fan is on, useful in automations where you can't be sure of the starting state
-- **Rapid commands are safe** — pressing buttons quickly won't confuse the fan; commands are queued and delivered in order
+`buttons.yaml` adds Turn On, Turn Off, Speed 1–4, Direction, and Reset State buttons. To customize, omit the package and define your own using the `vornado_stateful.*` actions:
+
+```yaml
+button:
+  - platform: template
+    name: "Fan Turn On"
+    on_press:
+      - vornado_stateful.turn_on:
+
+  - platform: template
+    name: "Fan Speed 2"
+    on_press:
+      - vornado_stateful.set_speed:
+          speed: 2
+```
+
+## Components
+
+### `vornado_controller` — IR delivery
+
+Handles the low-level work of getting IR commands to the physical fan reliably.
+
+- **Command queue** — commands are queued (up to 50) and sent one at a time with a minimum 400ms gap, so rapid button presses never confuse the fan
+- **Screen wake** — the fan's display sleeps after ~10 seconds of inactivity; when that happens, the first IR command only wakes the screen without acting. `vornado_controller` detects this and automatically sends the command twice: once to wake, once to act
+- **`ENSURE_ON`** — waits for the display to go to sleep, then sends `POWER_ON`. Because `POWER_ON` always turns the fan on from a sleeping display, this guarantees the fan ends up on regardless of prior state
+
+**Actions:**
+- `vornado_controller.send_command` — send a single command: `POWER_ON`, `POWER_OFF`, `DIRECTION`, `SPEED_INCREASE`, `SPEED_DECREASE`, `ENSURE_ON`
+- `vornado_controller.send_sequence` — send a list of commands
+
+### `vornado_stateful_controller` — State tracking and smart commands
+
+Sits on top of `vornado_controller` and tracks the fan's logical state in software (the fan has no feedback mechanism). Exposes sensors to Home Assistant and actions for use in buttons and automations.
+
+- **State tracking** — tracks `PowerState` (Unknown/Off/On) and `SpeedState` (Unknown/1–4), updated optimistically each time a command is sent
+- **Smart `set_speed`** — calculates the minimum number of increase/decrease presses to reach the target from the current speed; skips no-ops
+- **Auto-reset** — if state is unknown when an action is called, automatically runs `reset_to_known_state()` first: sends `ENSURE_ON` then 3× `SPEED_DECREASE`, which always lands at speed 1 regardless of starting position
+
+**Sensors (auto-created):**
+- Power State — text sensor: `Unknown` / `Off` / `On`
+- Speed — numeric sensor: `NaN` or `1`–`4`
+
+**Actions:**
+- `vornado_stateful.turn_on` — powers on (defaults to speed 2 if speed unknown)
+- `vornado_stateful.turn_off`
+- `vornado_stateful.set_speed` — set speed 1–4 (powers on first if off)
+- `vornado_stateful.toggle_direction`
+- `vornado_stateful.reset_state` — reset to known state (on, speed 1)
 
 ## Architecture
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for component details and IR codes.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for component internals and IR codes.

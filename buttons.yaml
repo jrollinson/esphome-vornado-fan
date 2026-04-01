@@ -1,0 +1,53 @@
+button:
+  - platform: template
+    name: "Fan Turn On"
+    icon: "mdi:power"
+    on_press:
+      - vornado_stateful.turn_on:
+
+  - platform: template
+    name: "Fan Turn Off"
+    icon: "mdi:power-off"
+    on_press:
+      - vornado_stateful.turn_off:
+
+  - platform: template
+    name: "Fan Speed 1"
+    icon: "mdi:fan-speed-1"
+    on_press:
+      - vornado_stateful.set_speed:
+          speed: 1
+
+  - platform: template
+    name: "Fan Speed 2"
+    icon: "mdi:fan-speed-2"
+    on_press:
+      - vornado_stateful.set_speed:
+          speed: 2
+
+  - platform: template
+    name: "Fan Speed 3"
+    icon: "mdi:fan-speed-3"
+    on_press:
+      - vornado_stateful.set_speed:
+          speed: 3
+
+  - platform: template
+    name: "Fan Speed 4"
+    icon: "mdi:fan"
+    on_press:
+      - vornado_stateful.set_speed:
+          speed: 4
+
+  - platform: template
+    name: "Fan Direction"
+    icon: "mdi:arrow-left-right"
+    on_press:
+      - vornado_stateful.toggle_direction:
+
+  - platform: template
+    name: "Fan Reset State"
+    icon: "mdi:restart"
+    entity_category: diagnostic
+    on_press:
+      - vornado_stateful.reset_state:
