@@ -7,6 +7,7 @@
 
 external_components:
   - source: github://jrollinson/esphome-vornado-fan@main
+    refresh: always
     components: [ vornado_controller, vornado_stateful_controller ]
 
 logger:
