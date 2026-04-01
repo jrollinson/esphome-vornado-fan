@@ -1,3 +1,4 @@
 secrets.yaml
 .esphome/
 tests/unit/test_timing
+.claude
