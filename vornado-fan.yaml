@@ -12,7 +12,7 @@ external_components:
       ref: vornado-ir-symphony-codes
     refresh: always
     components: [ vornado_ir ]
-  - source: github://jrollinson/esphome-vornado-fan@main
+  - source: github://jrollinson/esphome-vornado-fan@vornado-ir-integration
     refresh: always
     components: [ vornado_controller, vornado_stateful_controller ]
 
