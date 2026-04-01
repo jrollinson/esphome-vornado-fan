@@ -3,6 +3,12 @@ substitutions:
 
 external_components:
   - source:
+      type: git
+      url: https://github.com/jrollinson/esphome
+      ref: vornado-ir-symphony-codes
+    refresh: always
+    components: [ vornado_ir ]
+  - source:
       type: local
       path: ../components
     components: [ vornado_controller, vornado_stateful_controller ]
@@ -18,9 +24,13 @@ remote_transmitter:
   pin: ${vornado_ir_pin}
   carrier_duty_percent: 50%
 
+vornado_ir:
+  id: vornado_ir_component
+  transmitter_id: ir_tx
+
 vornado_controller:
   id: vornado_ctrl
-  transmitter_id: ir_tx
+  vornado_ir_id: vornado_ir_component
 
 vornado_stateful_controller:
   id: vornado_stateful

@@ -134,6 +134,7 @@ async def to_code(config):
     cv.Schema({
         cv.GenerateID(): cv.use_id(VornadoStatefulController),
     }),
+    synchronous=True,
 )
 async def turn_on_action_to_code(config, action_id, template_arg, args):
     """Generate code for turn_on action."""
@@ -148,6 +149,7 @@ async def turn_on_action_to_code(config, action_id, template_arg, args):
     cv.Schema({
         cv.GenerateID(): cv.use_id(VornadoStatefulController),
     }),
+    synchronous=True,
 )
 async def turn_off_action_to_code(config, action_id, template_arg, args):
     """Generate code for turn_off action."""
@@ -163,6 +165,7 @@ async def turn_off_action_to_code(config, action_id, template_arg, args):
         cv.GenerateID(): cv.use_id(VornadoStatefulController),
         cv.Required(CONF_SPEED): cv.templatable(cv.int_range(min=1, max=4)),
     }),
+    synchronous=True,
 )
 async def set_speed_action_to_code(config, action_id, template_arg, args):
     """Generate code for set_speed action."""
@@ -179,6 +182,7 @@ async def set_speed_action_to_code(config, action_id, template_arg, args):
     cv.Schema({
         cv.GenerateID(): cv.use_id(VornadoStatefulController),
     }),
+    synchronous=True,
 )
 async def toggle_direction_action_to_code(config, action_id, template_arg, args):
     """Generate code for toggle_direction action."""
@@ -193,6 +197,7 @@ async def toggle_direction_action_to_code(config, action_id, template_arg, args)
     cv.Schema({
         cv.GenerateID(): cv.use_id(VornadoStatefulController),
     }),
+    synchronous=True,
 )
 async def reset_state_action_to_code(config, action_id, template_arg, args):
     """Generate code for reset_state action."""

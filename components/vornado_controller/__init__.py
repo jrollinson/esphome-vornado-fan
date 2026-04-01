@@ -78,6 +78,7 @@ async def to_code(config):
         cv.GenerateID(): cv.use_id(VornadoController),
         cv.Required(CONF_BUTTON_ID): cv.templatable(BUTTON_ID_SCHEMA),
     }),
+    synchronous=True,
 )
 async def send_command_action_to_code(config, action_id, template_arg, args):
     """Generate code for send_command action."""
@@ -101,6 +102,7 @@ async def send_command_action_to_code(config, action_id, template_arg, args):
             cv.Length(min=1)
         ),
     }),
+    synchronous=True,
 )
 async def send_sequence_action_to_code(config, action_id, template_arg, args):
     """Generate code for send_sequence action."""

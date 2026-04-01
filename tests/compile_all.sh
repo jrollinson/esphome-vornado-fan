@@ -8,7 +8,7 @@ FAIL=0
 for config in "$SCRIPT_DIR"/*.yaml; do
   name="$(basename "$config")"
   echo "--- $name ---"
-  if esphome compile "$config"; then
+  if uv tool run esphome compile "$config"; then
     PASS=$((PASS + 1))
   else
     FAIL=$((FAIL + 1))
