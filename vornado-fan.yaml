@@ -30,9 +30,6 @@ remote_transmitter:
 vornado_controller:
   id: vornado_ctrl
   transmitter_id: ir_tx
-  min_spacing_ms: 400          # Minimum delay between IR commands
-  screen_timeout_ms: 10000     # Time after which screen is considered asleep (10 sec)
-  ensure_delay_ms: 15000       # Delay for "Ensure On" to guarantee screen sleep (15 sec)
 
 # ============================================================================
 # Vornado Stateful Controller
